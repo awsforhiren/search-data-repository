@@ -24,7 +24,8 @@ class TextSearchServiceTest {
 
     @BeforeEach
     void init(){
-        textSearchService = new TextSearchService();
+        FileProcessorService fileProcessorService = new FileProcessorService();
+        textSearchService = new TextSearchService(fileProcessorService);
     }
 
     @Test

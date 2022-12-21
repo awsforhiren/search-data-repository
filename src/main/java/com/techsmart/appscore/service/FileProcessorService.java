@@ -4,6 +4,7 @@ import com.techsmart.appscore.modal.FileData;
 import com.techsmart.appscore.modal.SearchText;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -11,8 +12,9 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Component
 public class FileProcessorService {
-    public static Map<String, Long> readFiles(File file) throws IOException {
+    public Map<String, Long> readFiles(File file) throws IOException {
         Map<String, Long> wordCountMap = Files.lines(file.toPath()) // read all the lines from the file
                 .parallel() // parallel processing
                 .flatMap(line -> Arrays.stream(line.trim().split(" "))) // split words on space
@@ -23,7 +25,7 @@ public class FileProcessorService {
         return wordCountMap;
     }
 
-    public static Map<String, Long> filterSearchText(SearchText searchText, Map<String, Long> wordCountMap) {
+    public Map<String, Long> filterSearchText(SearchText searchText, Map<String, Long> wordCountMap) {
         Map<String, Long> finalWordCountMap = new HashMap<>();
 
         if(Optional.ofNullable(wordCountMap).isPresent()) {
@@ -47,13 +49,14 @@ public class FileProcessorService {
         return finalWordCountMap;
     }
 
-    public static List<String> filterCountRows(Map<String, Long> wordCountMap, int rowno) {
+    public List<String> filterCountRows(Map<String, Long> wordCountMap, int rowno) {
         List<String> fileDataList = new LinkedList<>();
         if (Optional.ofNullable(wordCountMap).isPresent()) {
             Map<String, Long> sortedFilteredMap = wordCountMap.entrySet().stream()
                     .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))  //sort the by count values
                     .limit(rowno) //Filter No of records
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (u, v) -> u, LinkedHashMap::new));
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                            (u, v) -> u, LinkedHashMap::new));
 
             sortedFilteredMap.forEach((k, v) -> {
                 FileData fileData = new FileData();
@@ -64,7 +67,7 @@ public class FileProcessorService {
         }
         return fileDataList;
     }
-    public static ByteArrayInputStream buildCSVFile(List<String> fileDataList) {
+    public ByteArrayInputStream buildCSVFile(List<String> fileDataList) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
             if(Optional.ofNullable(fileDataList).isPresent()) {
